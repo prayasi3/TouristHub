@@ -1,9 +1,9 @@
-require("dotenv").config();
-const express = require("express");
-const cors = require("cors");
+import 'dotenv/config';
+import express from "express";
+import cors from "cors";
 
 // Load DB (just initializing connection)
-require("./config/db");
+import "./config/db.js";
 
 // Initialize Express
 const app = express();
@@ -13,11 +13,12 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-app.use("/api/auth", require("./routes/authRoutes"));
+import authRoutes from "./routes/authRoutes.js";
+app.use("/api/auth", authRoutes);
 
 // Test root
 app.get("/", (req, res) => {
-  res.send("Backend is running 🚀");
+  res.send("Prayasi is Cooking");
 });
 
 // 404 Handler (ALWAYS after routes)
@@ -32,4 +33,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
 });
