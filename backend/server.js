@@ -14,7 +14,10 @@ app.use(express.json());
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
+import destinationsRoutes from "./routes/destinations.js";
+
 app.use("/api/auth", authRoutes);
+app.use("/api/destinations", destinationsRoutes);
 
 // Test root
 app.get("/", (req, res) => {
@@ -33,5 +36,4 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  
 });
