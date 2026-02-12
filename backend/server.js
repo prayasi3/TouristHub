@@ -1,21 +1,32 @@
 import 'dotenv/config';
 import express from "express";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Import routes
 import authRoutes from "./routes/authRoutes.js";
 import destinationsRoutes from "./routes/destinations.js";
+import campaignRoutes from "./routes/campaignRoutes.js";
 
 // Initialize Express
 const app = express();
+
+// Fix __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middlewares
 app.use(cors());
 app.use(express.json());
 
+// Serve static images from public folder
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/destinations", destinationsRoutes);
+app.use("/api/campaigns", campaignRoutes);
 
 // Test root
 app.get("/", (req, res) => {
