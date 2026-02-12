@@ -2,8 +2,9 @@ import 'dotenv/config';
 import express from "express";
 import cors from "cors";
 
-// Load DB (just initializing connection)
-import "./config/db.js";
+// Import routes
+import authRoutes from "./routes/authRoutes.js";
+import destinationsRoutes from "./routes/destinations.js";
 
 // Initialize Express
 const app = express();
@@ -13,15 +14,12 @@ app.use(cors());
 app.use(express.json());
 
 // Routes
-import authRoutes from "./routes/authRoutes.js";
-import destinationsRoutes from "./routes/destinations.js";
-
 app.use("/api/auth", authRoutes);
 app.use("/api/destinations", destinationsRoutes);
 
 // Test root
 app.get("/", (req, res) => {
-  res.send("Prayasi is Cooking");
+  res.send("Backend is running");
 });
 
 // 404 Handler (ALWAYS after routes)
