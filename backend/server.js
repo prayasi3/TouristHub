@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes.js";
 import destinationsRoutes from "./routes/destinations.js";
 import campaignRoutes from "./routes/campaignRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
+import flightRoutes from "./routes/flightRoutes.js";
 
 // Initialize Express
 const app = express();
@@ -29,6 +30,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/destinations", destinationsRoutes);
 app.use("/api/campaigns", campaignRoutes);
 app.use("/api/hotels", hotelRoutes);
+app.use("/api/flights", flightRoutes);
 
 // Test root
 app.get("/", (req, res) => {
