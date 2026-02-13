@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import authRoutes from "./routes/authRoutes.js";
 import destinationsRoutes from "./routes/destinations.js";
 import campaignRoutes from "./routes/campaignRoutes.js";
+import hotelRoutes from "./routes/hotelRoutes.js";
 
 // Initialize Express
 const app = express();
@@ -27,6 +28,7 @@ app.use('/images', express.static(path.join(__dirname, 'public/images')));
 app.use("/api/auth", authRoutes);
 app.use("/api/destinations", destinationsRoutes);
 app.use("/api/campaigns", campaignRoutes);
+app.use("/api/hotels", hotelRoutes);
 
 // Test root
 app.get("/", (req, res) => {
