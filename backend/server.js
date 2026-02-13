@@ -11,6 +11,7 @@ import campaignRoutes from "./routes/campaignRoutes.js";
 import hotelRoutes from "./routes/hotelRoutes.js";
 import flightRoutes from "./routes/flightRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 
 // Initialize Express
 const app = express();
@@ -33,6 +34,7 @@ app.use("/api/campaigns", campaignRoutes);
 app.use("/api/hotels", hotelRoutes);
 app.use("/api/flights", flightRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/payments", paymentRoutes);
 
 // Test root
 app.get("/", (req, res) => {
