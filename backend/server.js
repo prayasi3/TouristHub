@@ -29,6 +29,10 @@ app.use(express.json());
 // Serve static images from public folder
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
+app.use((req, res, next) => {
+  console.log(`Route hit: ${req.method} ${req.url}`);
+  next();
+});
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/destinations", destinationsRoutes);

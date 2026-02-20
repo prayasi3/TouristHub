@@ -13,28 +13,26 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Check if email exists
-    db.query("SELECT * FROM users WHERE email = ?", [email], async (err, results) => {
-      if (err) return res.status(500).json({ message: err.message });
-      if (results.length > 0)
-        return res.status(400).json({ message: "Email already registered" });
+    // Check if email already exists
+    const [existingUsers] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Insert new user
-      db.query(
-        "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
-        [name, email, hashedPassword, role || "USER"],
-        (err, results) => {
-          if (err) return res.status(500).json({ message: err.message });
-          console.log("New user ID:", results.insertId);
-          res.status(201).json({ message: "User registered successfully" });
-        }
-      );
-    });
+    // Insert new user
+    const [result] = await db.query(
+      "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
+      [name, email, hashedPassword, role || "USER"]
+    );
+
+    console.log("New user ID:", result.insertId);
+    res.status(201).json({ message: "User registered successfully", userId: result.insertId });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
