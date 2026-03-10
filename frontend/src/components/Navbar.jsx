@@ -1,7 +1,19 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 function Navbar() {
-  const token = localStorage.getItem("token");
+  const [token, setToken] = useState(localStorage.getItem("token"));
+
+  useEffect(() => {
+    const checkToken = () => {
+      setToken(localStorage.getItem("token"));
+    };
+
+    window.addEventListener("storage", checkToken);
+    checkToken();
+
+    return () => window.removeEventListener("storage", checkToken);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");

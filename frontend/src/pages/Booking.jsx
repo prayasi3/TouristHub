@@ -10,10 +10,8 @@ function Booking() {
   const [selectedHotel, setSelectedHotel] = useState("");
   const [selectedFlight, setSelectedFlight] = useState("");
   const [travelDate, setTravelDate] = useState("");
-
   const [loading, setLoading] = useState(true);
 
-  // Fetch data for dropdowns
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -30,7 +28,6 @@ function Booking() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
@@ -38,12 +35,24 @@ function Booking() {
     e.preventDefault();
 
     try {
-      const res = await API.post("/bookings", {
-        destinationId: selectedDestination,
-        hotelId: selectedHotel,
-        flightId: selectedFlight,
-        travelDate,
-      });
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("User not logged in");
+
+      // Send booking request
+      const res = await API.post(
+        "/bookings",
+        {
+          destinationId: selectedDestination,
+          hotelId: selectedHotel,
+          flightId: selectedFlight,
+          travelDate,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       alert("Booking successful!");
       console.log(res.data);

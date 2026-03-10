@@ -11,8 +11,8 @@ import {
 const router = express.Router();
 
 router.get("/", getBookings);
+router.get("/user/:user_id", getBookingsByUser); // specific first
 router.get("/:id", getBookingById);
-router.get("/user/:user_id", getBookingsByUser);
 router.post("/", createBooking);
 router.put("/:id", updateBooking);
 router.delete("/:id", deleteBooking);

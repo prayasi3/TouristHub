@@ -21,6 +21,8 @@ export default function Login() {
 
       // Save JWT and user info in localStorage
       localStorage.setItem("token", res.data.token);
+      navigate("/");
+      window.location.reload();
       localStorage.setItem("user", JSON.stringify(res.data.user));
 
       alert("Login successful!");
