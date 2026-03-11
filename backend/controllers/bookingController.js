@@ -31,15 +31,36 @@ export const getBookingsByUser = async (req, res) => {
 };
 
 export const createBooking = async (req, res) => {
-  try {
-    const id = await Booking.create(req.body);
-    res.status(201).json({
-      message: "Booking created successfully",
-      id
-    });
-  } catch (err) {
-    res.status(500).json({ message: "Failed to create booking" });
-  }
+
+ try {
+
+  const { destinationId, hotelId, flightId, travelDate } = req.body;
+
+  const userId = req.user?.id || 1;
+
+  const bookingId = await Booking.createFullBooking({
+   userId,
+   destinationId,
+   hotelId,
+   flightId,
+   travelDate
+  });
+
+  res.status(201).json({
+   message: "Booking successful",
+   bookingId
+  });
+
+ } catch (error) {
+
+  console.error("Booking error:", error);
+
+  res.status(500).json({
+   message: "Booking failed"
+  });
+
+ }
+
 };
 
 export const updateBooking = async (req, res) => {
