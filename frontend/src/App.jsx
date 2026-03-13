@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Booking from "./pages/Booking";
 import Payment from "./pages/Payment";
+import TourGuides from "./pages/TourGuides";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route path="/destinations" element={<Destinations />} />
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/payment" element={<Payment />} />
+        <Route path="/tour-guides" element={<TourGuides />} />
 
         {/* Protected Routes */}
         <Route

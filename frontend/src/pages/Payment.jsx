@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 
 function Payment() {
+  const navigate = useNavigate();
   const [bookingId, setBookingId] = useState("");
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState("esewa");
@@ -20,6 +22,7 @@ function Payment() {
 
       alert("Payment created successfully");
       console.log(res.data);
+      navigate("/");
     } catch (err) {
       console.error(err);
       alert("Payment failed");

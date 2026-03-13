@@ -23,6 +23,7 @@ function Navbar() {
         <Link to="/" className="hover:text-blue-600">Home</Link>
         <Link to="/destinations" className="hover:text-blue-600">Destinations</Link>
         <Link to="/campaigns" className="hover:text-blue-600">Campaigns</Link>
+        <Link to="/tour-guides" className="hover:text-blue-600">Tour Guides</Link>
 
         {token ? (
           <>
