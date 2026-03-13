@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import API from "../api/axios";
 
 function Booking() {
+  const navigate = useNavigate();
   const [destinations, setDestinations] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [flights, setFlights] = useState([]);
@@ -56,6 +58,8 @@ function Booking() {
 
       alert("Booking successful!");
       console.log(res.data);
+      const bookingId = res.data.id || res.data.bookingId;
+      navigate(`/payment?booking_id=${bookingId}`);
     } catch (error) {
       console.error("Booking failed:", error);
       alert("Booking failed");

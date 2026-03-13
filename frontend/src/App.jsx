@@ -8,6 +8,7 @@ import Campaigns from "./pages/Campaigns";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Booking from "./pages/Booking";
+import Payment from "./pages/Payment";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/destinations" element={<Destinations />} />
         <Route path="/campaigns" element={<Campaigns />} />
+        <Route path="/payment" element={<Payment />} />
 
         {/* Protected Routes */}
         <Route
