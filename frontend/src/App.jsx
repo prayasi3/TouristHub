@@ -10,6 +10,8 @@ import Signup from "./pages/Signup";
 import Booking from "./pages/Booking";
 import Payment from "./pages/Payment";
 import TourGuides from "./pages/TourGuides";
+import Flights from "./pages/Flights";
+import Hotels from "./pages/Hotels";
 
 function App() {
   return (
@@ -25,7 +27,8 @@ function App() {
         <Route path="/campaigns" element={<Campaigns />} />
         <Route path="/payment" element={<Payment />} />
         <Route path="/tour-guides" element={<TourGuides />} />
-
+        <Route path="/flights" element={<Flights />} />
+        <Route path="/hotels" element={<Hotels />} />
         {/* Protected Routes */}
         <Route
           path="/booking"
@@ -34,6 +37,7 @@ function App() {
               <Booking />
             </ProtectedRoute>
           }
+        
         />
       </Routes>
     </BrowserRouter>
