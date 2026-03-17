@@ -121,7 +121,7 @@ function Booking() {
             <option value="">Select Flight</option>
             {flights.map((f) => (
               <option key={f.id} value={f.id}>
-                {f.airline} - {f.flightNumber}
+                {f.airline} - {f.flight_number}
               </option>
             ))}
           </select>

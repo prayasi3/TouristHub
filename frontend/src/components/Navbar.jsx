@@ -26,6 +26,7 @@ function Navbar() {
         <Link to="/tour-guides" className="hover:text-blue-600">Tour Guides</Link>
         <Link to="/flights" className="hover:text-blue-600">Flights</Link>
         <Link to="/hotels" className="hover:text-blue-600">Hotels</Link>
+        <Link to="/dashboard" className="hover:text-blue-600">Dashboard</Link>
 
         {token ? (
           <>

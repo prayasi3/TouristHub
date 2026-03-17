@@ -2,63 +2,117 @@ import db from "../config/db.js";
 
 class Booking {
 
-static async createFullBooking(data) {
+  static async createFullBooking(data) {
+    const connection = await db.getConnection();
 
- const connection = await db.getConnection();
+    try {
+      await connection.beginTransaction();
 
- try {
+      const { userId, destinationId, hotelId, flightId, travelDate } = data;
 
-  await connection.beginTransaction();
+      // Fetch prices
+      const [[hotel]] = await connection.query(
+        `SELECT price_per_night FROM hotels WHERE id = ?`, [hotelId]
+      );
+      const [[flight]] = await connection.query(
+        `SELECT price FROM flights WHERE id = ?`, [flightId]
+      );
 
-  const { userId, destinationId, hotelId, flightId, travelDate } = data;
+        console.log("hotelId received:", hotelId, typeof hotelId);
+        console.log("flightId received:", flightId, typeof flightId);
+        console.log("hotel row:", hotel);
+        console.log("flight row:", flight);
 
-  // 1️⃣ create main booking
-  const [bookingResult] = await connection.query(
-   `INSERT INTO bookings (user_id, booking_status, payment_status)
-    VALUES (?, 'pending','pending')`,
-   [userId]
-  );
+      const totalAmount = parseFloat(hotel?.price_per_night ?? 0) + parseFloat(flight?.price ?? 0);
+      const bookingNumber = `BK-${Date.now()}-${userId}`;
 
-  const bookingId = bookingResult.insertId;
+      // Insert — only columns your table actually has
+      const [bookingResult] = await connection.query(
+        `INSERT INTO bookings 
+           (user_id, booking_number, total_amount, booking_status, payment_status)
+         VALUES (?, ?, ?, 'confirmed', 'pending')`,
+        [userId, bookingNumber, totalAmount]
+      );
 
-  // 2️⃣ destination booking
-  await connection.query(
-   `INSERT INTO destination_bookings (booking_id,destination_id,travel_date)
-    VALUES (?,?,?)`,
-   [bookingId, destinationId, travelDate]
-  );
+      const bookingId = bookingResult.insertId;
 
-  // 3️⃣ hotel booking
-  await connection.query(
-   `INSERT INTO hotel_bookings (booking_id,hotel_id)
-    VALUES (?,?)`,
-   [bookingId, hotelId]
-  );
+      // Junction tables
+      await connection.query(
+        `INSERT INTO destination_bookings (booking_id, destination_id, travel_date)
+         VALUES (?, ?, ?)`,
+        [bookingId, destinationId, travelDate]
+      );
+      await connection.query(
+        `INSERT INTO hotel_bookings (booking_id, hotel_id) VALUES (?, ?)`,
+        [bookingId, hotelId]
+      );
+      await connection.query(
+        `INSERT INTO flight_bookings (booking_id, flight_id) VALUES (?, ?)`,
+        [bookingId, flightId]
+      );
 
-  // 4️⃣ flight booking
-  await connection.query(
-   `INSERT INTO flight_bookings (booking_id,flight_id)
-    VALUES (?,?)`,
-   [bookingId, flightId]
-  );
+      await connection.commit();
 
-  await connection.commit();
+      return { bookingId, bookingNumber, totalAmount };
 
-  return bookingId;
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
 
- } catch (error) {
+  static async getByUser(userId) {
+    const [rows] = await db.query(
+      `SELECT 
+         b.id,
+         b.booking_number,
+         b.total_amount,
+         b.booking_status,
+         b.payment_status,
+         b.created_at,
+         d.name        AS destination_name,
+         h.name        AS hotel_name,
+         f.airline,
+         f.flight_number,
+         db2.travel_date
+       FROM bookings b
+       LEFT JOIN destination_bookings db2 ON db2.booking_id = b.id
+       LEFT JOIN destinations d           ON d.id = db2.destination_id
+       LEFT JOIN hotel_bookings hb        ON hb.booking_id = b.id
+       LEFT JOIN hotels h                 ON h.id = hb.hotel_id
+       LEFT JOIN flight_bookings fb       ON fb.booking_id = b.id
+       LEFT JOIN flights f                ON f.id = fb.flight_id
+       WHERE b.user_id = ?
+       ORDER BY b.created_at DESC`,
+      [userId]
+    );
+    return rows;
+  }
 
-  await connection.rollback();
-  throw error;
+  static async getAll() {
+    const [rows] = await db.query(`SELECT * FROM bookings ORDER BY created_at DESC`);
+    return rows;
+  }
 
- } finally {
+  static async getById(id) {
+    const [[row]] = await db.query(`SELECT * FROM bookings WHERE id = ?`, [id]);
+    return row;
+  }
 
-  connection.release();
+  static async update(id, data) {
+    const [result] = await db.query(
+      `UPDATE bookings SET booking_status = ?, payment_status = ? WHERE id = ?`,
+      [data.booking_status, data.payment_status, id]
+    );
+    return result.affectedRows > 0;
+  }
 
- }
-
-}
-
+  static async delete(id) {
+    const [result] = await db.query(`DELETE FROM bookings WHERE id = ?`, [id]);
+    return result.affectedRows > 0;
+  }
 }
 
 export default Booking;
