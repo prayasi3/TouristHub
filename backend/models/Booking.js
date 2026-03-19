@@ -8,46 +8,52 @@ class Booking {
     try {
       await connection.beginTransaction();
 
-      const { userId, destinationId, hotelId, flightId, travelDate } = data;
+      const { userId, destinationId, hotelId, flightId, travelDate, nights = 1 } = data;
 
-      // Fetch prices
+      // Fetch prices from DB
       const [[hotel]] = await connection.query(
-        `SELECT price_per_night FROM hotels WHERE id = ?`, [hotelId]
+        `SELECT price_per_night FROM hotels WHERE id = ?`,
+        [hotelId]
       );
       const [[flight]] = await connection.query(
-        `SELECT price FROM flights WHERE id = ?`, [flightId]
+        `SELECT price FROM flights WHERE id = ?`,
+        [flightId]
       );
 
-        console.log("hotelId received:", hotelId, typeof hotelId);
-        console.log("flightId received:", flightId, typeof flightId);
-        console.log("hotel row:", hotel);
-        console.log("flight row:", flight);
+      const hotelPrice = parseFloat(hotel?.price_per_night || 0);
+      const flightPrice = parseFloat(flight?.price || 0);
+      const nightsNum = parseInt(nights || 1);
 
-      const totalAmount = parseFloat(hotel?.price_per_night ?? 0) + parseFloat(flight?.price ?? 0);
+      const totalAmount = flightPrice + hotelPrice * nightsNum;
+
       const bookingNumber = `BK-${Date.now()}-${userId}`;
 
-      // Insert — only columns your table actually has
+      // Insert booking
       const [bookingResult] = await connection.query(
         `INSERT INTO bookings 
-           (user_id, booking_number, total_amount, booking_status, payment_status)
-         VALUES (?, ?, ?, 'confirmed', 'pending')`,
+        (user_id, booking_number, total_amount, booking_status, payment_status)
+        VALUES (?, ?, ?, 'confirmed', 'pending')`,
         [userId, bookingNumber, totalAmount]
       );
 
       const bookingId = bookingResult.insertId;
 
-      // Junction tables
+      // Insert into junction tables
       await connection.query(
         `INSERT INTO destination_bookings (booking_id, destination_id, travel_date)
-         VALUES (?, ?, ?)`,
+        VALUES (?, ?, ?)`,
         [bookingId, destinationId, travelDate]
       );
+
       await connection.query(
-        `INSERT INTO hotel_bookings (booking_id, hotel_id) VALUES (?, ?)`,
+        `INSERT INTO hotel_bookings (booking_id, hotel_id)
+        VALUES (?, ?)`,
         [bookingId, hotelId]
       );
+
       await connection.query(
-        `INSERT INTO flight_bookings (booking_id, flight_id) VALUES (?, ?)`,
+        `INSERT INTO flight_bookings (booking_id, flight_id)
+        VALUES (?, ?)`,
         [bookingId, flightId]
       );
 

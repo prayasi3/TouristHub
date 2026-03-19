@@ -29,31 +29,27 @@ export const getBookingsByUser = async (req, res) => {
 };
 
 export const createBooking = async (req, res) => {
-  console.log("createBooking hit");        // ← keep this for now
-  console.log("req.body:", req.body);
-
   try {
-    const { destinationId, hotelId, flightId, travelDate } = req.body;
+    const { destinationId, hotelId, flightId, travelDate, nights } = req.body;
     const userId = req.user?.id || 1;
 
-    // ← THIS is the critical part — destructure all three
     const { bookingId, bookingNumber, totalAmount } = await Booking.createFullBooking({
       userId,
       destinationId,
       hotelId,
       flightId,
       travelDate,
+      nights
     });
 
     res.status(201).json({
       message: "Booking successful",
       bookingId,
       bookingNumber,
-      totalAmount,
+      totalAmount
     });
-
   } catch (error) {
-    console.error("Booking error:", error); // ← this will now show the real error
+    console.error("Booking error:", error);
     res.status(500).json({ message: "Booking failed" });
   }
 };

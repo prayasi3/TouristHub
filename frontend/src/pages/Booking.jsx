@@ -4,6 +4,7 @@ import API from "../api/axios";
 
 function Booking() {
   const navigate = useNavigate();
+
   const [destinations, setDestinations] = useState([]);
   const [hotels, setHotels] = useState([]);
   const [flights, setFlights] = useState([]);
@@ -12,6 +13,8 @@ function Booking() {
   const [selectedHotel, setSelectedHotel] = useState("");
   const [selectedFlight, setSelectedFlight] = useState("");
   const [travelDate, setTravelDate] = useState("");
+  const [nights, setNights] = useState(1);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,14 +36,20 @@ function Booking() {
     fetchData();
   }, []);
 
+  const selectedFlightObj = flights.find(f => f.id == selectedFlight);
+  const selectedHotelObj = hotels.find(h => h.id == selectedHotel);
+
+  const flightPrice = parseFloat(selectedFlightObj?.price || 0);
+  const hotelPrice = parseFloat(selectedHotelObj?.price_per_night || 0);
+  const nightsNum = parseInt(nights || 1);
+  const total = flightPrice + hotelPrice * nightsNum;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("User not logged in");
 
-      // Send booking request
       const res = await API.post(
         "/bookings",
         {
@@ -48,104 +57,107 @@ function Booking() {
           hotelId: selectedHotel,
           flightId: selectedFlight,
           travelDate,
+          nights: nightsNum
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` }
         }
       );
 
+      const bookingId = res.data.bookingId;
+
+      // ✅ Booking successful message
       alert("Booking successful!");
-      console.log(res.data);
-      const bookingId = res.data.id || res.data.bookingId;
-      navigate(`/payment?booking_id=${bookingId}`);
+
+      navigate(`/payment?booking_id=${bookingId}&amount=${total.toFixed(2)}`);
     } catch (error) {
       console.error("Booking failed:", error);
       alert("Booking failed");
     }
   };
 
-  if (loading) return <div className="p-10">Loading booking options...</div>;
+  if (loading) return <div className="p-10">Loading...</div>;
 
   return (
     <div className="p-10 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Create a Booking</h1>
+      <h1 className="text-3xl font-bold mb-6">Create Booking</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-xl shadow-md">
         {/* Destination */}
-        <div>
-          <label className="block font-semibold mb-1">Destination</label>
-          <select
-            className="w-full border p-3 rounded-lg"
-            value={selectedDestination}
-            onChange={(e) => setSelectedDestination(e.target.value)}
-            required
-          >
-            <option value="">Select Destination</option>
-            {destinations.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={selectedDestination}
+          onChange={(e) => setSelectedDestination(e.target.value)}
+          required
+          className="w-full border p-3"
+        >
+          <option value="">Select Destination</option>
+          {destinations.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+        </select>
 
         {/* Hotel */}
-        <div>
-          <label className="block font-semibold mb-1">Hotel</label>
-          <select
-            className="w-full border p-3 rounded-lg"
-            value={selectedHotel}
-            onChange={(e) => setSelectedHotel(e.target.value)}
-            required
-          >
-            <option value="">Select Hotel</option>
-            {hotels.map((h) => (
-              <option key={h.id} value={h.id}>
-                {h.name} - {h.location}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={selectedHotel}
+          onChange={(e) => setSelectedHotel(e.target.value)}
+          required
+          className="w-full border p-3"
+        >
+          <option value="">Select Hotel</option>
+          {hotels.map(h => (
+            <option key={h.id} value={h.id}>
+              {h.name} - ${h.price_per_night}/night
+            </option>
+          ))}
+        </select>
 
         {/* Flight */}
-        <div>
-          <label className="block font-semibold mb-1">Flight</label>
-          <select
-            className="w-full border p-3 rounded-lg"
-            value={selectedFlight}
-            onChange={(e) => setSelectedFlight(e.target.value)}
-            required
-          >
-            <option value="">Select Flight</option>
-            {flights.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.airline} - {f.flight_number}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={selectedFlight}
+          onChange={(e) => setSelectedFlight(e.target.value)}
+          required
+          className="w-full border p-3"
+        >
+          <option value="">Select Flight</option>
+          {flights.map(f => (
+            <option key={f.id} value={f.id}>
+              {f.airline} - ${f.price}
+            </option>
+          ))}
+        </select>
 
-        {/* Travel Date */}
+        {/* Nights */}
         <div>
-          <label className="block font-semibold mb-1">Travel Date</label>
+          <label className="block font-semibold mb-1">
+            Number of Nights (Hotel is priced per night)
+          </label>
           <input
-            type="date"
-            className="w-full border p-3 rounded-lg"
-            value={travelDate}
-            onChange={(e) => setTravelDate(e.target.value)}
+            type="number"
+            min="1"
+            value={nights}
+            onChange={(e) => setNights(e.target.value)}
+            className="w-full border p-3"
             required
           />
         </div>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700 transition"
-        >
-          Book Now
-        </button>
+        {/* Travel Date */}
+        <input
+          type="date"
+          value={travelDate}
+          onChange={(e) => setTravelDate(e.target.value)}
+          className="w-full border p-3"
+          required
+        />
+
+        {/* Price Breakdown */}
+        <div className="bg-gray-100 p-4 rounded-lg mt-4">
+          <h3 className="font-bold mb-2">Price Breakdown</h3>
+          <p>Flight: ${flightPrice}</p>
+          <p>Hotel: ${hotelPrice} × {nightsNum} night(s) = ${hotelPrice * nightsNum}</p>
+          <hr className="my-2" />
+          <p className="font-bold">Total: ${total.toFixed(2)}</p>
+        </div>
+
+        <button className="w-full bg-blue-600 text-white p-3 rounded">Book Now</button>
       </form>
     </div>
   );
