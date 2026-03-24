@@ -8,12 +8,12 @@ import Booking from "./pages/Booking";
 import CampaignDetails from "./pages/CampaignDetails";
 import Campaigns from "./pages/Campaigns";
 import Confirmation from "./pages/Confirmation";
-import Dashboard from "./pages/Dashboard";
 import Destinations from "./pages/Destinations";
 import Flights from "./pages/Flights";
 import Home from "./pages/Home";
 import Hotels from "./pages/Hotels";
 import Login from "./pages/Login";
+import Mytrips from "./pages/Mytrips";
 import Payment from "./pages/Payment";
 import Signup from "./pages/Signup";
 import TourGuides from "./pages/TourGuides";
@@ -60,7 +60,7 @@ function App() {
               path="/my-trips"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <Mytrips />
                 </ProtectedRoute>
               }
             />

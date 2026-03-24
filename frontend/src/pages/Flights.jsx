@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../api/axios";
+import PageHeader from "../components/PageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../components/StatusView";
 import { currency, formatDate, formatTime } from "../lib/format";
 
@@ -13,11 +14,10 @@ function Flights() {
     from: "",
     to: "",
     date: "",
-    passengers: "1",
   });
 
   useEffect(() => {
-    async function load() {
+    async function loadFlights() {
       try {
         const response = await API.get("/flights");
         setFlights(response.data);
@@ -28,80 +28,98 @@ function Flights() {
       }
     }
 
-    load();
+    loadFlights();
   }, []);
-
-  const searchResults = useMemo(() => {
-    const fromQuery = searchParams.from.trim().toLowerCase();
-    const toQuery = searchParams.to.trim().toLowerCase();
-    const dateQuery = searchParams.date;
-
-    return flights.filter((flight) => {
-      const matchesFrom = !fromQuery || String(flight.source || "").toLowerCase().includes(fromQuery);
-      const matchesTo = !toQuery || String(flight.destination || "").toLowerCase().includes(toQuery);
-      const matchesDate = !dateQuery || String(flight.date || "").slice(0, 10) === dateQuery;
-      return matchesFrom && matchesTo && matchesDate;
-    });
-  }, [flights, searchParams]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setSearchParams((current) => ({ ...current, [name]: value }));
   };
 
-  const handleSearch = (event) => {
+  const handleSearch = async (event) => {
     event.preventDefault();
-    setHasSearched(true);
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await API.get("/flights", {
+        params: {
+          source: searchParams.from.trim() || undefined,
+          destination: searchParams.to.trim() || undefined,
+          date: searchParams.date || undefined,
+        },
+      });
+
+      setFlights(response.data);
+      setHasSearched(true);
+    } catch {
+      setError("Could not load flights.");
+      setHasSearched(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = async () => {
+    setSearchParams({ from: "", to: "", date: "" });
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await API.get("/flights");
+      setFlights(response.data);
+      setHasSearched(false);
+    } catch {
+      setError("Could not load flights.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <LoadingState label="Loading flights" />;
   if (error) return <ErrorState title="Flights unavailable" message={error} />;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-semibold tracking-[-0.04em] text-ink-950 sm:text-5xl">
-          Book Flights
-        </h1>
-        <p className="mt-3 text-lg text-ink-900/65">
-          Find the best flight deals for your journey
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Flight Search"
+        title="Browse Scheduled Flights"
+        description="Search flight records using the fields stored in your flights table: source, destination, date, departure time, arrival time, and price."
+        compact
+      />
 
-      <section className="rounded-[28px] border border-ink-950/10 bg-white px-6 py-7 shadow-[0_20px_60px_-40px_rgba(15,23,32,0.25)] sm:px-8">
+      <section className="surface-card">
         <h2 className="text-2xl font-semibold text-ink-950">Search Flights</h2>
 
         <form onSubmit={handleSearch} className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div>
-            <label className="label-text" htmlFor="from">From</label>
+            <label className="label-text" htmlFor="from">Source</label>
             <input
               id="from"
               name="from"
               type="text"
-              placeholder="Departure city"
+              placeholder="Source airport or city"
               value={searchParams.from}
               onChange={handleChange}
               className="input-shell"
-              required
             />
           </div>
 
           <div>
-            <label className="label-text" htmlFor="to">To</label>
+            <label className="label-text" htmlFor="to">Destination</label>
             <input
               id="to"
               name="to"
               type="text"
-              placeholder="Destination city"
+              placeholder="Destination airport or city"
               value={searchParams.to}
               onChange={handleChange}
               className="input-shell"
-              required
             />
           </div>
 
           <div>
-            <label className="label-text" htmlFor="date">Date</label>
+            <label className="label-text" htmlFor="date">Flight Date</label>
             <input
               id="date"
               name="date"
@@ -109,72 +127,61 @@ function Flights() {
               value={searchParams.date}
               onChange={handleChange}
               className="input-shell"
-              required
             />
           </div>
 
-          <div>
-            <label className="label-text" htmlFor="passengers">Passengers</label>
-            <input
-              id="passengers"
-              name="passengers"
-              type="number"
-              min="1"
-              max="10"
-              value={searchParams.passengers}
-              onChange={handleChange}
-              className="input-shell"
-              required
-            />
-          </div>
-
-          <div className="md:col-span-2 lg:col-span-4">
-            <button
-              type="submit"
-              className="w-full rounded-2xl bg-[#050414] px-5 py-4 text-base font-semibold text-white transition hover:bg-[#111026]"
-            >
+          <div className="flex items-end">
+            <button type="submit" className="primary-button w-full">
               Search Flights
             </button>
+          </div>
+
+          <div className="md:col-span-2 lg:col-span-4 flex flex-wrap gap-3">
+            <button type="button" onClick={handleReset} className="secondary-button">
+              Reset Filters
+            </button>
+            <p className="self-center text-sm text-ink-900/55">
+              Showing airline, flight number, route, date, departure time, arrival time, and price.
+            </p>
           </div>
         </form>
       </section>
 
-      {hasSearched ? (
-        <section className="mt-10 space-y-4">
-          <h2 className="text-2xl font-semibold text-ink-950">Available Flights</h2>
+      {hasSearched || flights.length > 0 ? (
+        <section className="space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-2xl font-semibold text-ink-950">Available Flights</h2>
+            <p className="text-sm text-ink-900/55">{flights.length} result{flights.length === 1 ? "" : "s"}</p>
+          </div>
 
-          {searchResults.length > 0 ? (
-            searchResults.map((flight) => (
-              <article
-                key={flight.id}
-                className="rounded-[24px] border border-ink-950/10 bg-white p-6 shadow-[0_18px_40px_-34px_rgba(15,23,32,0.3)]"
-              >
+          {flights.length > 0 ? (
+            flights.map((flight) => (
+              <article key={flight.id} className="surface-card">
                 <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3">
                       <p className="text-lg font-semibold text-ink-950">{flight.airline}</p>
-                      <span className="rounded-full border border-ink-950/10 bg-[#f7f7f8] px-3 py-1 text-xs font-semibold text-ink-900/70">
-                        {flight.flight_number || "Flight"}
-                      </span>
+                      <span className="pill">{flight.flight_number}</span>
                     </div>
 
-                    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+                    <div className="mt-4 grid gap-4 sm:grid-cols-3">
                       <div>
-                        <p className="text-2xl font-semibold text-ink-950">{formatTime(flight.departure_time)}</p>
-                        <p className="text-sm text-ink-900/60">{flight.source}</p>
+                        <p className="text-sm text-ink-900/45">Source</p>
+                        <p className="mt-1 text-lg font-semibold text-ink-950">{flight.source}</p>
+                        <p className="mt-1 text-sm text-ink-900/60">Departs {formatTime(flight.departure_time)}</p>
                       </div>
 
-                      <div className="text-sm font-medium text-ink-900/35">to</div>
+                      <div>
+                        <p className="text-sm text-ink-900/45">Destination</p>
+                        <p className="mt-1 text-lg font-semibold text-ink-950">{flight.destination}</p>
+                        <p className="mt-1 text-sm text-ink-900/60">Arrives {formatTime(flight.arrival_time)}</p>
+                      </div>
 
                       <div>
-                        <p className="text-2xl font-semibold text-ink-950">{formatTime(flight.arrival_time)}</p>
-                        <p className="text-sm text-ink-900/60">{flight.destination}</p>
+                        <p className="text-sm text-ink-900/45">Flight Date</p>
+                        <p className="mt-1 text-lg font-semibold text-ink-950">{formatDate(flight.date)}</p>
                       </div>
                     </div>
-
-                    <p className="mt-4 text-sm text-ink-900/55">
-                      {formatDate(flight.date)} • Passenger count: {searchParams.passengers}
-                    </p>
                   </div>
 
                   <div className="flex flex-col items-start gap-3 md:items-end">
@@ -189,18 +196,16 @@ function Flights() {
           ) : (
             <EmptyState
               title="No flights found"
-              message="Please try different search criteria."
+              message="No flight records matched the current source, destination, and date filters."
             />
           )}
         </section>
-      ) : flights.length === 0 ? (
-        <div className="mt-10">
-          <EmptyState
-            title="No flights found"
-            message="Create flight records and they will appear here."
-          />
-        </div>
-      ) : null}
+      ) : (
+        <EmptyState
+          title="No flights found"
+          message="Create flight records in the database and they will appear here."
+        />
+      )}
     </div>
   );
 }

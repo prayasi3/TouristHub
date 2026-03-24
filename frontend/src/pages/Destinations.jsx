@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import API from "../api/axios";
 import { EmptyState, ErrorState, LoadingState } from "../components/StatusView";
 
@@ -135,11 +134,6 @@ function Destinations() {
                   <p className="mt-5 text-sm font-medium text-ink-900/55">
                     {destination.location || "Nepal"}
                   </p>
-
-                  <div className="mt-6 flex gap-3">
-                    <Link to="/booking" className="primary-button">Book Now</Link>
-                    <Link to="/campaigns" className="secondary-button">View Offers</Link>
-                  </div>
                 </div>
               </article>
             );

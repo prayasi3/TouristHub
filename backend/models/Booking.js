@@ -1,5 +1,22 @@
 import db from "../config/db.js";
 
+function toDateOnly(value) {
+  if (!value) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  const parsed = new Date(value);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString().slice(0, 10);
+  }
+
+  return String(value).slice(0, 10);
+}
+
 class Booking {
 
   static async createFullBooking(data) {
@@ -16,13 +33,14 @@ class Booking {
         [hotelId]
       );
       const [[flight]] = await connection.query(
-        `SELECT price FROM flights WHERE id = ?`,
+        `SELECT price, date FROM flights WHERE id = ?`,
         [flightId]
       );
 
       const hotelPrice = parseFloat(hotel?.price_per_night || 0);
       const flightPrice = parseFloat(flight?.price || 0);
       const nightsNum = parseInt(nights || 1);
+      const effectiveTravelDate = toDateOnly(travelDate || flight?.date);
 
       const totalAmount = flightPrice + hotelPrice * nightsNum;
 
@@ -42,7 +60,7 @@ class Booking {
       await connection.query(
         `INSERT INTO destination_bookings (booking_id, destination_id, travel_date)
         VALUES (?, ?, ?)`,
-        [bookingId, destinationId, travelDate]
+        [bookingId, destinationId, effectiveTravelDate]
       );
 
       await connection.query(
@@ -80,9 +98,12 @@ class Booking {
          b.created_at,
          d.name        AS destination_name,
          h.name        AS hotel_name,
+         h.price_per_night AS hotel_price_per_night,
          f.airline,
          f.flight_number,
-         db2.travel_date
+         f.price       AS flight_price,
+         db2.travel_date,
+         p.payment_method
        FROM bookings b
        LEFT JOIN destination_bookings db2 ON db2.booking_id = b.id
        LEFT JOIN destinations d           ON d.id = db2.destination_id
@@ -90,6 +111,7 @@ class Booking {
        LEFT JOIN hotels h                 ON h.id = hb.hotel_id
        LEFT JOIN flight_bookings fb       ON fb.booking_id = b.id
        LEFT JOIN flights f                ON f.id = fb.flight_id
+       LEFT JOIN payments p               ON p.booking_id = b.id
        WHERE b.user_id = ?
        ORDER BY b.created_at DESC`,
       [userId]

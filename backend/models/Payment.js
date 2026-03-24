@@ -1,5 +1,16 @@
 import db from "../config/db.js";
 
+function toMySqlDateTime(value) {
+  const date = value ? new Date(value) : new Date();
+
+  if (Number.isNaN(date.getTime())) {
+    const fallback = new Date();
+    return fallback.toISOString().slice(0, 19).replace("T", " ");
+  }
+
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
 class Payment {
   // Get all payments
   static async getAll() {
@@ -48,8 +59,15 @@ class Payment {
         payment_method,
         payment_status,
         transaction_id,
-        payment_date || new Date() // default to current datetime if not provided
+        toMySqlDateTime(payment_date),
       ]
+    );
+
+    await db.query(
+      `UPDATE bookings
+       SET payment_status = ?
+       WHERE id = ?`,
+      [payment_status || "paid", booking_id],
     );
 
     return result.insertId;
@@ -68,7 +86,7 @@ class Payment {
       [
         payment_status,
         transaction_id,
-        payment_date || new Date(),
+        toMySqlDateTime(payment_date),
         id
       ]
     );

@@ -19,13 +19,31 @@ class TourGuide {
 
   // Create guide
   static async create(data) {
-    const { name, experience, languages, specialties, rate_per_hour, contact, photo_url } = data;
+    const {
+      name,
+      experience,
+      languages,
+      specialties,
+      rate_per_hour,
+      contact,
+      email,
+      photo_url,
+    } = data;
 
     const [result] = await db.query(
       `INSERT INTO tour_guides 
-       (name, experience, languages, specialties, rate_per_hour, contact, photo_url)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [name, experience, languages, specialties, rate_per_hour, contact, photo_url]
+       (name, experience, languages, specialties, rate_per_hour, contact, email, photo_url)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        String(name || "").trim(),
+        String(experience || "").trim(),
+        String(languages || "").trim(),
+        String(specialties || "").trim(),
+        rate_per_hour,
+        String(contact || "").trim(),
+        String(email || "").trim(),
+        String(photo_url || "").trim(),
+      ]
     );
 
     return result.insertId;
@@ -33,7 +51,16 @@ class TourGuide {
 
   // Update guide
   static async update(id, data) {
-    const { name, experience, languages, specialties, rate_per_hour, contact, photo_url } = data;
+    const {
+      name,
+      experience,
+      languages,
+      specialties,
+      rate_per_hour,
+      contact,
+      email,
+      photo_url,
+    } = data;
 
     const [result] = await db.query(
       `UPDATE tour_guides SET
@@ -43,9 +70,20 @@ class TourGuide {
         specialties = ?,
         rate_per_hour = ?,
         contact = ?,
+        email = ?,
         photo_url = ?
        WHERE id = ?`,
-      [name, experience, languages, specialties, rate_per_hour, contact, photo_url, id]
+      [
+        String(name || "").trim(),
+        String(experience || "").trim(),
+        String(languages || "").trim(),
+        String(specialties || "").trim(),
+        rate_per_hour,
+        String(contact || "").trim(),
+        String(email || "").trim(),
+        String(photo_url || "").trim(),
+        id,
+      ]
     );
 
     return result.affectedRows;

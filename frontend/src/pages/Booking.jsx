@@ -17,7 +17,6 @@ function Booking() {
     destinationId: "",
     hotelId: "",
     flightId: "",
-    travelDate: "",
     nights: 1,
   });
 
@@ -124,7 +123,7 @@ function Booking() {
               <option value="">Select a destination</option>
               {destinations.map((destination) => (
                 <option key={destination.id} value={destination.id}>
-                  {destination.name} {destination.location ? `• ${destination.location}` : ""}
+                  {destination.name} {destination.location ? `â€¢ ${destination.location}` : ""}
                 </option>
               ))}
             </select>
@@ -146,7 +145,7 @@ function Booking() {
               <option value="">Select a hotel</option>
               {hotels.map((hotel) => (
                 <option key={hotel.id} value={hotel.id}>
-                  {hotel.name} {hotel.location ? `• ${hotel.location}` : ""} • {currency(hotel.price_per_night)}
+                  {hotel.name} {hotel.location ? `â€¢ ${hotel.location}` : ""} â€¢ {currency(hotel.price_per_night)}
                 </option>
               ))}
             </select>
@@ -179,7 +178,7 @@ function Booking() {
               <option value="">Select a flight</option>
               {flights.map((flight) => (
                 <option key={flight.id} value={flight.id}>
-                  {flight.airline} • {flight.source} to {flight.destination} • {currency(flight.price)}
+                  {flight.airline} â€¢ {flight.source} to {flight.destination} â€¢ {currency(flight.price)}
                 </option>
               ))}
             </select>
@@ -188,20 +187,6 @@ function Booking() {
                 {formatDate(selectedFlight.date)} | {formatTime(selectedFlight.departure_time)} to {formatTime(selectedFlight.arrival_time)}
               </p>
             ) : null}
-          </div>
-
-          <div>
-            <label className="label-text" htmlFor="travelDate">Travel Date</label>
-            <input
-              id="travelDate"
-              name="travelDate"
-              type="date"
-              min={new Date().toISOString().split("T")[0]}
-              value={form.travelDate}
-              onChange={handleChange}
-              className="input-shell"
-              required
-            />
           </div>
 
           <div className="rounded-2xl bg-[#f7f7f8] px-4 py-4 text-sm text-ink-900/70">

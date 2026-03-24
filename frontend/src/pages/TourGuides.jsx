@@ -19,7 +19,6 @@ function TourGuides() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGuide, setSelectedGuide] = useState(null);
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
     async function load() {
@@ -44,6 +43,7 @@ function TourGuides() {
       const searchable = [
         guide.name,
         guide.contact,
+        guide.email,
         guide.languages,
         guide.specialties,
         guide.experience,
@@ -58,14 +58,6 @@ function TourGuides() {
 
   const handleContact = (guide) => {
     setSelectedGuide(guide);
-    setMessage("");
-  };
-
-  const handleSendMessage = () => {
-    if (!selectedGuide || !message.trim()) return;
-    window.alert(`Message sent to ${selectedGuide.name}. They will contact you soon.`);
-    setSelectedGuide(null);
-    setMessage("");
   };
 
   if (loading) return <LoadingState label="Loading guides" />;
@@ -85,7 +77,7 @@ function TourGuides() {
       <div className="mb-8">
         <input
           type="text"
-          placeholder="Search by name, language, contact, or specialty..."
+          placeholder="Search by name, contact number, email, language, or specialty..."
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
           className="w-full rounded-2xl border border-ink-950/8 bg-white/70 px-5 py-4 text-base text-ink-950 outline-none transition placeholder:text-ink-900/35 focus:border-ocean-500 focus:ring-4 focus:ring-ocean-500/10"
@@ -124,7 +116,12 @@ function TourGuides() {
                 <div className="space-y-4 p-5">
                   <div>
                     <h2 className="text-2xl font-semibold text-ink-950">{guide.name}</h2>
-                    <p className="mt-1 text-sm text-ink-900/60">{guide.contact || "Contact unavailable"}</p>
+                    <p className="mt-1 text-sm text-ink-900/60">
+                      Contact: {guide.contact || "Unavailable"}
+                    </p>
+                    <p className="mt-1 text-sm text-ink-900/60">
+                      Email: {guide.email || "Unavailable"}
+                    </p>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2 text-sm text-ink-900/60">
@@ -188,15 +185,12 @@ function TourGuides() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-2xl font-semibold text-ink-950">Contact {selectedGuide.name}</h2>
-              <p className="mt-2 text-sm text-ink-900/60">
-                {selectedGuide.contact || "Send your tour requirements below."}
-              </p>
+              <p className="mt-2 text-sm text-ink-900/60">Use the guide details below to contact them directly.</p>
             </div>
             <button
               type="button"
               onClick={() => {
                 setSelectedGuide(null);
-                setMessage("");
               }}
               className="rounded-xl border border-ink-950/10 px-4 py-2 text-sm font-semibold text-ink-900/70 transition hover:border-ocean-500/40 hover:text-ocean-600"
             >
@@ -207,29 +201,10 @@ function TourGuides() {
           <div className="mt-6 rounded-2xl bg-[#f7f7f8] p-4 text-sm text-ink-900/70">
             <p><span className="font-semibold text-ink-950">Guide:</span> {selectedGuide.name}</p>
             <p className="mt-2"><span className="font-semibold text-ink-950">Experience:</span> {selectedGuide.experience || "Not listed"}</p>
+            <p className="mt-2"><span className="font-semibold text-ink-950">Contact Number:</span> {selectedGuide.contact || "Unavailable"}</p>
+            <p className="mt-2"><span className="font-semibold text-ink-950">Email:</span> {selectedGuide.email || "Unavailable"}</p>
             <p className="mt-2"><span className="font-semibold text-ink-950">Rate:</span> {currency(selectedGuide.rate_per_hour)} / hour</p>
           </div>
-
-          <div className="mt-5">
-            <label className="label-text" htmlFor="guide-message">Your Message</label>
-            <textarea
-              id="guide-message"
-              rows="5"
-              placeholder="Tell the guide about your tour requirements..."
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              className="input-shell min-h-32 resize-y"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={handleSendMessage}
-            disabled={!message.trim()}
-            className="mt-5 w-full rounded-2xl bg-[#050414] px-5 py-4 text-base font-semibold text-white transition hover:bg-[#111026] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Send Message
-          </button>
         </section>
       ) : null}
     </div>

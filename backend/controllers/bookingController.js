@@ -31,7 +31,11 @@ export const getBookingsByUser = async (req, res) => {
 export const createBooking = async (req, res) => {
   try {
     const { destinationId, hotelId, flightId, travelDate, nights } = req.body;
-    const userId = req.user?.id || 1;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Login required to create a booking" });
+    }
 
     const { bookingId, bookingNumber, totalAmount } = await Booking.createFullBooking({
       userId,
@@ -50,7 +54,7 @@ export const createBooking = async (req, res) => {
     });
   } catch (error) {
     console.error("Booking error:", error);
-    res.status(500).json({ message: "Booking failed" });
+    res.status(500).json({ message: error.message || "Booking failed" });
   }
 };
 

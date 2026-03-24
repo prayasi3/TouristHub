@@ -1,32 +1,39 @@
 import db from "../config/db.js";
 
 class Hotel {
-  // Get all hotels (with images)
-  static async getAll() {
-    const [rows] = await db.query(`
-      SELECT 
-        h.*,
-        GROUP_CONCAT(hi.image_url) AS images
-      FROM hotels h
-      LEFT JOIN hotel_images hi ON h.id = hi.hotel_id
-      GROUP BY h.id
-    `);
+  // Get all hotels
+  static async getAll(filters = {}) {
+    const conditions = [];
+    const params = [];
+
+    if (filters.location) {
+      conditions.push(`LOWER(location) LIKE ?`);
+      params.push(`%${String(filters.location).trim().toLowerCase()}%`);
+    }
+
+    if (filters.name) {
+      conditions.push(`LOWER(name) LIKE ?`);
+      params.push(`%${String(filters.name).trim().toLowerCase()}%`);
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    const [rows] = await db.query(
+      `SELECT id, name, location, price_per_night, contact_info, created_at
+       FROM hotels
+       ${whereClause}
+       ORDER BY location ASC, name ASC`,
+      params,
+    );
     return rows;
   }
 
   // Get hotel by ID
   static async getById(id) {
     const [rows] = await db.query(
-      `
-      SELECT 
-        h.*,
-        GROUP_CONCAT(hi.image_url) AS images
-      FROM hotels h
-      LEFT JOIN hotel_images hi ON h.id = hi.hotel_id
-      WHERE h.id = ?
-      GROUP BY h.id
-      `,
-      [id]
+      `SELECT id, name, location, price_per_night, contact_info, created_at
+       FROM hotels
+       WHERE id = ?`,
+      [id],
     );
     return rows[0];
   }
@@ -60,8 +67,6 @@ class Hotel {
 
   // Delete hotel
   static async delete(id) {
-    // delete images first (FK safety)
-    await db.query(`DELETE FROM hotel_images WHERE hotel_id = ?`, [id]);
     const [result] = await db.query(`DELETE FROM hotels WHERE id = ?`, [id]);
     return result.affectedRows;
   }

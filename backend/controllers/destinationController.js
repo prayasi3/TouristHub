@@ -7,9 +7,9 @@ export const addDestination = async (req, res) => {
     const sql = "INSERT INTO destinations (name, location, description, image) VALUES (?, ?, ?, ?)";
     await db.query(sql, [name, location, description, image]);
 
-    res.status(201).json({ message: "Destination added successfully" });
+    res.status(201).json({ message: "destinations added successfully" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ message: "failed to add destinations" });
   }
 };

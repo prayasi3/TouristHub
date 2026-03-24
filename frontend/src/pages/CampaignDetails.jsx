@@ -50,7 +50,6 @@ function CampaignDetails() {
         actions={
           <>
             <Link to="/campaigns" className="secondary-button">All Campaigns</Link>
-            <Link to="/booking" className="primary-button">Book with this Offer</Link>
           </>
         }
       />

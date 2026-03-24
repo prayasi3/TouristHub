@@ -2,9 +2,32 @@ import db from "../config/db.js";
 
 class Flight {
   // Get all flights
-  static async getAll() {
+  static async getAll(filters = {}) {
+    const conditions = [];
+    const params = [];
+
+    if (filters.source) {
+      conditions.push(`LOWER(source) LIKE ?`);
+      params.push(`%${String(filters.source).trim().toLowerCase()}%`);
+    }
+
+    if (filters.destination) {
+      conditions.push(`LOWER(destination) LIKE ?`);
+      params.push(`%${String(filters.destination).trim().toLowerCase()}%`);
+    }
+
+    if (filters.date) {
+      conditions.push(`date = ?`);
+      params.push(filters.date);
+    }
+
+    const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
     const [rows] = await db.query(
-      `SELECT * FROM flights ORDER BY departure_time ASC`
+      `SELECT id, airline, flight_number, source, destination, price, date, departure_time, arrival_time, created_at
+       FROM flights
+       ${whereClause}
+       ORDER BY date ASC, departure_time ASC, arrival_time ASC`,
+      params,
     );
     return rows;
   }
