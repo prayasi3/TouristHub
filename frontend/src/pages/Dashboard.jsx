@@ -1,151 +1,155 @@
-// src/pages/Dashboard.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import API from "../api/axios";
+import PageHeader from "../components/PageHeader";
+import { EmptyState, ErrorState, LoadingState } from "../components/StatusView";
+import { getStoredUser } from "../lib/auth";
+import { currency, formatDate } from "../lib/format";
 
-const statusColors = {
-  confirmed: "bg-green-100 text-green-700",
-  pending:   "bg-yellow-100 text-yellow-700",
-  cancelled: "bg-red-100 text-red-700",
-};
+function bookingTone(status) {
+  switch (status) {
+    case "confirmed":
+      return "bg-emerald-100 text-emerald-700";
+    case "pending":
+      return "bg-amber-100 text-amber-700";
+    case "cancelled":
+      return "bg-red-100 text-red-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+}
 
-const paymentColors = {
-  paid:    "bg-green-100 text-green-700",
-  pending: "bg-orange-100 text-orange-700",
-  failed:  "bg-red-100 text-red-700",
-};
+function paymentTone(status) {
+  switch (status) {
+    case "paid":
+      return "bg-sky-100 text-sky-700";
+    case "pending":
+      return "bg-orange-100 text-orange-700";
+    case "failed":
+      return "bg-rose-100 text-rose-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+}
 
 function Dashboard() {
   const [bookings, setBookings] = useState([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchBookings = async () => {
+    async function load() {
+      const user = getStoredUser();
+
+      if (!user?.id) {
+        setError("No signed-in user was found in local storage.");
+        setLoading(false);
+        return;
+      }
+
       try {
-        const token = localStorage.getItem("token");
-        if (!token) { setError("Please log in to view your bookings."); return; }
-
-        // Decode user id from JWT payload (simple base64 decode)
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        const userId  = payload.id || payload.userId || payload.sub;
-
-        const res = await API.get(`/bookings/user/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setBookings(res.data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load bookings.");
+        const response = await API.get(`/bookings/user/${user.id}`);
+        setBookings(response.data);
+      } catch {
+        setError("Could not load bookings for the current user.");
       } finally {
         setLoading(false);
       }
-    };
-    fetchBookings();
+    }
+
+    load();
   }, []);
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-gray-500 text-lg">Loading your bookings…</div>
-    </div>
-  );
+  if (loading) return <LoadingState label="Loading my trips" />;
+  if (error) {
+    return <ErrorState title="My trips unavailable" message={error} action={<Link to="/login" className="primary-button">Go to Login</Link>} />;
+  }
 
-  if (error) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="text-red-500">{error}</div>
-    </div>
-  );
+  const totalBooked = bookings.reduce((sum, booking) => sum + Number(booking.total_amount || 0), 0);
+  const pendingPayments = bookings.filter((booking) => booking.payment_status === "pending").length;
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-10">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Bookings</h1>
-          <p className="text-gray-500 mt-1">All your Nepal travel bookings in one place.</p>
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Traveler Space"
+        title="Your bookings, payments, and trip history"
+        description="This is the user-only trip area. Admin management lives separately in the admin console."
+        compact
+        actions={<Link to="/booking" className="primary-button">Create Another Booking</Link>}
+      />
+
+      <section className="grid gap-4 md:grid-cols-3">
+        <div className="metric-card">
+          <p className="text-sm text-ink-900/55">Total bookings</p>
+          <p className="mt-3 text-3xl font-bold">{bookings.length}</p>
         </div>
-        <Link to="/booking"
-          className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition">
-          + New Booking
-        </Link>
-      </div>
+        <div className="metric-card">
+          <p className="text-sm text-ink-900/55">Pending payments</p>
+          <p className="mt-3 text-3xl font-bold">{pendingPayments}</p>
+        </div>
+        <div className="metric-card">
+          <p className="text-sm text-ink-900/55">Booked value</p>
+          <p className="mt-3 text-3xl font-bold">{currency(totalBooked)}</p>
+        </div>
+      </section>
 
       {bookings.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">
-          <p className="text-5xl mb-4">✈️</p>
-          <p className="text-lg">No bookings yet.</p>
-          <Link to="/booking" className="text-blue-600 hover:underline mt-2 inline-block">
-            Make your first booking →
-          </Link>
-        </div>
+        <EmptyState
+          title="No bookings yet"
+          message="Once a traveler completes the booking flow, records will appear here."
+          action={<Link to="/booking" className="primary-button">Make My First Booking</Link>}
+        />
       ) : (
-        <div className="space-y-4">
-          {bookings.map((b) => (
-            <div key={b.id}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition">
-              {/* Top row */}
-              <div className="flex items-start justify-between mb-4">
+        <section className="space-y-4">
+          {bookings.map((booking) => (
+            <article key={booking.id} className="surface-card">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">Booking number</p>
-                  <p className="font-mono font-semibold text-gray-800">{b.booking_number}</p>
+                  <p className="text-xs font-bold uppercase tracking-[0.24em] text-ink-900/40">Booking number</p>
+                  <h2 className="mt-2 text-2xl font-bold">{booking.booking_number}</h2>
+                  <p className="mt-2 text-sm text-ink-900/60">Created {formatDate(booking.created_at)}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-blue-600">
-                    NPR {Number(b.total_amount).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(b.created_at).toLocaleDateString("en-US", {
-                      year: "numeric", month: "short", day: "numeric"
-                    })}
-                  </p>
+                <div className="text-left lg:text-right">
+                  <p className="text-sm text-ink-900/55">Total</p>
+                  <p className="mt-1 text-3xl font-bold text-ocean-600">{currency(booking.total_amount)}</p>
                 </div>
               </div>
 
-              {/* Details grid */}
-              <div className="grid grid-cols-2 gap-3 text-sm mb-4">
+              <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 <div>
-                  <p className="text-gray-400">Destination</p>
-                  <p className="font-medium text-gray-700">{b.destination_name || "—"}</p>
+                  <p className="text-sm text-ink-900/45">Destination</p>
+                  <p className="mt-1 font-semibold">{booking.destination_name || "Not linked"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Travel date</p>
-                  <p className="font-medium text-gray-700">
-                    {b.travel_date
-                      ? new Date(b.travel_date).toLocaleDateString("en-US", { year:"numeric", month:"short", day:"numeric" })
-                      : "—"}
+                  <p className="text-sm text-ink-900/45">Hotel</p>
+                  <p className="mt-1 font-semibold">{booking.hotel_name || "Not linked"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-ink-900/45">Flight</p>
+                  <p className="mt-1 font-semibold">
+                    {booking.airline ? `${booking.airline} ${booking.flight_number}` : "Not linked"}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Hotel</p>
-                  <p className="font-medium text-gray-700">{b.hotel_name || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Flight</p>
-                  <p className="font-medium text-gray-700">
-                    {b.airline && b.flight_number ? `${b.airline} – ${b.flight_number}` : "—"}
-                  </p>
+                  <p className="text-sm text-ink-900/45">Travel date</p>
+                  <p className="mt-1 font-semibold">{formatDate(booking.travel_date)}</p>
                 </div>
               </div>
 
-              {/* Status badges + pay button */}
-              <div className="flex items-center justify-between">
-                <div className="flex gap-2">
-                  <span className={`text-xs font-semibold px-3 py-1 rounded-full ${statusColors[b.booking_status] ?? "bg-gray-100 text-gray-600"}`}>
-                    {b.booking_status}
-                  </span>
-                  <span className={`text-xs font-semibold px-3 py-1 rounded-full ${paymentColors[b.payment_status] ?? "bg-gray-100 text-gray-600"}`}>
-                    {b.payment_status}
-                  </span>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap gap-2">
+                  <span className={`status-badge ${bookingTone(booking.booking_status)}`}>{booking.booking_status}</span>
+                  <span className={`status-badge ${paymentTone(booking.payment_status)}`}>{booking.payment_status}</span>
                 </div>
-                {b.payment_status === "pending" && (
-                  <Link to={`/payment?booking_id=${b.id}`}
-                    className="text-sm bg-blue-600 text-white px-4 py-1.5 rounded-lg hover:bg-blue-700 transition">
-                    Pay Now
+                {booking.payment_status === "pending" ? (
+                  <Link to={`/payment?booking_id=${booking.id}&amount=${booking.total_amount}&booking_number=${booking.booking_number}`} className="primary-button">
+                    Complete Payment
                   </Link>
-                )}
+                ) : null}
               </div>
-            </div>
+            </article>
           ))}
-        </div>
+        </section>
       )}
     </div>
   );

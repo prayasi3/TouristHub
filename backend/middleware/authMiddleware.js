@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const verifyToken = (req, res, next) => {
+export const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -16,6 +16,14 @@ const verifyToken = (req, res, next) => {
   } catch (err) {
     return res.status(401).json({ message: "Invalid or expired token" });
   }
+};
+
+export const requireAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "Admin access required" });
+  }
+
+  next();
 };
 
 export default verifyToken;

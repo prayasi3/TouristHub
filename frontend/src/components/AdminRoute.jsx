@@ -1,14 +1,18 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { isAuthenticated } from "../lib/auth";
+import { isAdmin, isAuthenticated } from "../lib/auth";
 
-function ProtectedRoute({ children }) {
+function AdminRoute({ children }) {
   const location = useLocation();
 
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
+  if (!isAdmin()) {
+    return <Navigate to="/" replace />;
+  }
+
   return children;
 }
 
-export default ProtectedRoute;
+export default AdminRoute;

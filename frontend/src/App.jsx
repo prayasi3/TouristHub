@@ -1,48 +1,80 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import AdminRoute from "./components/AdminRoute";
+import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Dashboard from "./pages/Dashboard";
-
-import Home from "./pages/Home";
-import Destinations from "./pages/Destinations";
-import Campaigns from "./pages/Campaigns";
-import CampaignDetails from "./pages/CampaignDetails";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import UserLayout from "./components/UserLayout";
+import AdminDashboard from "./pages/AdminDashboard";
 import Booking from "./pages/Booking";
-import Payment from "./pages/Payment";
-import TourGuides from "./pages/TourGuides";
+import CampaignDetails from "./pages/CampaignDetails";
+import Campaigns from "./pages/Campaigns";
+import Confirmation from "./pages/Confirmation";
+import Dashboard from "./pages/Dashboard";
+import Destinations from "./pages/Destinations";
 import Flights from "./pages/Flights";
+import Home from "./pages/Home";
 import Hotels from "./pages/Hotels";
+import Login from "./pages/Login";
+import Payment from "./pages/Payment";
+import Signup from "./pages/Signup";
+import TourGuides from "./pages/TourGuides";
 
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
-
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/destinations" element={<Destinations />} />
-        <Route path="/campaigns" element={<Campaigns />} />
-        <Route path="/campaigns/:id" element={<CampaignDetails />} />
-        <Route path="/payment" element={<Payment />} />
-        <Route path="/tour-guides" element={<TourGuides />} />
-        <Route path="/flights" element={<Flights />} />
-        <Route path="/hotels" element={<Hotels />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        {/* Protected Routes */}
+        <Route element={<UserLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/destinations" element={<Destinations />} />
+            <Route path="/campaigns" element={<Campaigns />} />
+            <Route path="/campaigns/:id" element={<CampaignDetails />} />
+            <Route path="/hotels" element={<Hotels />} />
+            <Route path="/flights" element={<Flights />} />
+            <Route path="/tour-guides" element={<TourGuides />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route
+              path="/booking"
+              element={
+                <ProtectedRoute>
+                  <Booking />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment"
+              element={
+                <ProtectedRoute>
+                  <Payment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/confirmation"
+              element={
+                <ProtectedRoute>
+                  <Confirmation />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/my-trips"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+        </Route>
+
         <Route
-          path="/booking"
           element={
-            <ProtectedRoute>
-              <Booking />
-            </ProtectedRoute>
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
           }
-        
-        />
+        >
+          <Route path="/admin" element={<AdminDashboard />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

@@ -1,5 +1,6 @@
 import express from "express";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import db from "../config/db.js";
 
 const router = express.Router();
@@ -7,7 +8,7 @@ const router = express.Router();
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
@@ -28,7 +29,7 @@ router.post("/register", async (req, res) => {
     // Insert new user
     const [result] = await db.query(
       "INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)",
-      [name, email, hashedPassword, role || "USER"]
+      [name, email, hashedPassword, "USER"]
     );
 
     console.log("New user ID:", result.insertId);
@@ -62,18 +63,21 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Optionally, generate a JWT here (if you want authentication tokens)
-    // const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign(
+      { id: user.id, role: user.role || "USER" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.status(200).json({
       message: "Login successful",
+      token,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role,
+        role: user.role || "USER",
       },
-      // token,
     });
   } catch (err) {
     console.error(err);
