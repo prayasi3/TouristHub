@@ -97,13 +97,16 @@ function Payment() {
               <option value="esewa">eSewa</option>
               <option value="khalti">Khalti</option>
               <option value="bank-transfer">Bank Transfer</option>
-              <option value="cash">Cash</option>
             </select>
           </div>
 
           {message ? <p className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{message}</p> : null}
 
-          <button type="submit" disabled={!form.bookingId || submitting} className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={!form.bookingId || submitting}
+            className="primary-button w-full disabled:cursor-not-allowed disabled:opacity-60"
+          >
             {submitting ? "Recording payment..." : "Confirm Payment"}
           </button>
         </form>

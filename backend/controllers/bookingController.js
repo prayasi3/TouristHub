@@ -37,6 +37,14 @@ export const createBooking = async (req, res) => {
       return res.status(401).json({ message: "Login required to create a booking" });
     }
 
+    if (!destinationId) {
+      return res.status(400).json({ message: "Destination is required" });
+    }
+
+    if (!hotelId && !flightId) {
+      return res.status(400).json({ message: "Select at least a hotel or a flight" });
+    }
+
     const { bookingId, bookingNumber, totalAmount } = await Booking.createFullBooking({
       userId,
       destinationId,

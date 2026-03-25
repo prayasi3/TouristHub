@@ -66,6 +66,8 @@ function normalizeStoredBooking(booking, index) {
     paymentMethod: booking?.paymentMethod ?? booking?.payment_method ?? booking?.paymentMethodName ?? "",
     paymentStatus: booking?.payment_status ?? booking?.paymentStatus ?? "paid",
     bookingStatus: booking?.booking_status ?? booking?.bookingStatus ?? "confirmed",
+    hasHotel: Boolean(booking?.hotel?.name ?? booking?.hotel_name ?? booking?.hotelName),
+    hasFlight: Boolean(booking?.flight?.airline ?? booking?.airline ?? booking?.flight_name),
   };
 }
 
@@ -93,6 +95,8 @@ function normalizeApiBooking(booking) {
     paymentMethod: booking.payment_method || "",
     paymentStatus: booking.payment_status || "pending",
     bookingStatus: booking.booking_status || "confirmed",
+    hasHotel: Boolean(booking.hotel_name),
+    hasFlight: Boolean(booking.airline || booking.flight_name),
   };
 }
 
@@ -288,34 +292,38 @@ function Mytrips() {
               </div>
 
               <div className="space-y-4 p-6">
-                <div className="flex items-start gap-3 rounded-[22px] bg-slate-50 p-4">
-                  <IconShell>
-                    <HotelIcon />
-                  </IconShell>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-base font-semibold text-ink-950">{booking.hotelName}</h3>
-                      <span className="text-sm font-semibold text-ink-950">{currency(booking.hotelTotal)}</span>
+                {booking.hasHotel ? (
+                  <div className="flex items-start gap-3 rounded-[22px] bg-slate-50 p-4">
+                    <IconShell>
+                      <HotelIcon />
+                    </IconShell>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-4">
+                        <h3 className="text-base font-semibold text-ink-950">{booking.hotelName}</h3>
+                        <span className="text-sm font-semibold text-ink-950">{currency(booking.hotelTotal)}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-ink-900/60">
+                        {booking.nights} {booking.nights === 1 ? "night" : "nights"}
+                        {booking.hotelNightlyRate ? ` x ${currency(booking.hotelNightlyRate)}/night` : ""}
+                      </p>
                     </div>
-                    <p className="mt-1 text-sm text-ink-900/60">
-                      {booking.nights} {booking.nights === 1 ? "night" : "nights"}
-                      {booking.hotelNightlyRate ? ` x ${currency(booking.hotelNightlyRate)}/night` : ""}
-                    </p>
                   </div>
-                </div>
+                ) : null}
 
-                <div className="flex items-start gap-3 rounded-[22px] bg-slate-50 p-4">
-                  <IconShell>
-                    <PlaneIcon />
-                  </IconShell>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-4">
-                      <h3 className="text-base font-semibold text-ink-950">{booking.flightName}</h3>
-                      <span className="text-sm font-semibold text-ink-950">{currency(booking.flightPrice)}</span>
+                {booking.hasFlight ? (
+                  <div className="flex items-start gap-3 rounded-[22px] bg-slate-50 p-4">
+                    <IconShell>
+                      <PlaneIcon />
+                    </IconShell>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-4">
+                        <h3 className="text-base font-semibold text-ink-950">{booking.flightName}</h3>
+                        <span className="text-sm font-semibold text-ink-950">{currency(booking.flightPrice)}</span>
+                      </div>
+                      <p className="mt-1 text-sm text-ink-900/60">Flight details included in this booking</p>
                     </div>
-                    <p className="mt-1 text-sm text-ink-900/60">Flight details included in this booking</p>
                   </div>
-                </div>
+                ) : null}
 
                 <div className="space-y-2 border-t border-ink-950/10 pt-4">
                   <div className="flex items-center gap-2 text-sm text-ink-900/60">

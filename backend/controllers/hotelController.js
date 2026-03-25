@@ -24,7 +24,6 @@ function validateHotelPayload(body = {}) {
 
   return { payload, errors };
 }
-
 export const getHotels = async (req, res) => {
   try {
     const hotels = await Hotel.getAll({

@@ -27,15 +27,36 @@ class Booking {
 
       const { userId, destinationId, hotelId, flightId, travelDate, nights = 1 } = data;
 
-      // Fetch prices from DB
-      const [[hotel]] = await connection.query(
-        `SELECT price_per_night FROM hotels WHERE id = ?`,
-        [hotelId]
-      );
-      const [[flight]] = await connection.query(
-        `SELECT price, date FROM flights WHERE id = ?`,
-        [flightId]
-      );
+      if (!hotelId && !flightId) {
+        throw new Error("Select at least a hotel or a flight");
+      }
+
+      let hotel = null;
+      let flight = null;
+
+      if (hotelId) {
+        const [hotelRows] = await connection.query(
+          `SELECT price_per_night FROM hotels WHERE id = ?`,
+          [hotelId]
+        );
+        hotel = hotelRows[0] || null;
+      }
+
+      if (flightId) {
+        const [flightRows] = await connection.query(
+          `SELECT price, date FROM flights WHERE id = ?`,
+          [flightId]
+        );
+        flight = flightRows[0] || null;
+      }
+
+      if (hotelId && !hotel) {
+        throw new Error("Selected hotel was not found");
+      }
+
+      if (flightId && !flight) {
+        throw new Error("Selected flight was not found");
+      }
 
       const hotelPrice = parseFloat(hotel?.price_per_night || 0);
       const flightPrice = parseFloat(flight?.price || 0);
@@ -63,17 +84,21 @@ class Booking {
         [bookingId, destinationId, effectiveTravelDate]
       );
 
-      await connection.query(
-        `INSERT INTO hotel_bookings (booking_id, hotel_id)
-        VALUES (?, ?)`,
-        [bookingId, hotelId]
-      );
+      if (hotelId) {
+        await connection.query(
+          `INSERT INTO hotel_bookings (booking_id, hotel_id)
+          VALUES (?, ?)`,
+          [bookingId, hotelId]
+        );
+      }
 
-      await connection.query(
-        `INSERT INTO flight_bookings (booking_id, flight_id)
-        VALUES (?, ?)`,
-        [bookingId, flightId]
-      );
+      if (flightId) {
+        await connection.query(
+          `INSERT INTO flight_bookings (booking_id, flight_id)
+          VALUES (?, ?)`,
+          [bookingId, flightId]
+        );
+      }
 
       await connection.commit();
 

@@ -76,6 +76,8 @@ function Booking() {
     try {
       const response = await API.post("/bookings", {
         ...form,
+        hotelId: form.hotelId || null,
+        flightId: form.flightId || null,
         nights: Number(form.nights),
       });
 
@@ -123,7 +125,7 @@ function Booking() {
               <option value="">Select a destination</option>
               {destinations.map((destination) => (
                 <option key={destination.id} value={destination.id}>
-                  {destination.name} {destination.location ? `â€¢ ${destination.location}` : ""}
+                  {destination.name} {destination.location ? `- ${destination.location}` : ""}
                 </option>
               ))}
             </select>
@@ -140,12 +142,11 @@ function Booking() {
               value={form.hotelId}
               onChange={handleChange}
               className="input-shell"
-              required
             >
-              <option value="">Select a hotel</option>
+              <option value="">No hotel</option>
               {hotels.map((hotel) => (
                 <option key={hotel.id} value={hotel.id}>
-                  {hotel.name} {hotel.location ? `â€¢ ${hotel.location}` : ""} â€¢ {currency(hotel.price_per_night)}
+                  {hotel.name} {hotel.location ? `- ${hotel.location}` : ""} - {currency(hotel.price_per_night)}
                 </option>
               ))}
             </select>
@@ -161,7 +162,8 @@ function Booking() {
               value={form.nights}
               onChange={handleChange}
               className="input-shell"
-              required
+              disabled={!form.hotelId}
+              required={Boolean(form.hotelId)}
             />
           </div>
 
@@ -173,12 +175,11 @@ function Booking() {
               value={form.flightId}
               onChange={handleChange}
               className="input-shell"
-              required
             >
-              <option value="">Select a flight</option>
+              <option value="">No flight</option>
               {flights.map((flight) => (
                 <option key={flight.id} value={flight.id}>
-                  {flight.airline} â€¢ {flight.source} to {flight.destination} â€¢ {currency(flight.price)}
+                  {flight.airline} - {flight.source} to {flight.destination} - {currency(flight.price)}
                 </option>
               ))}
             </select>
@@ -204,6 +205,12 @@ function Booking() {
             </div>
           </div>
 
+          {!form.hotelId && !form.flightId ? (
+            <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Select at least a hotel or a flight to continue.
+            </p>
+          ) : null}
+
           {message ? (
             <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {message}
@@ -212,7 +219,7 @@ function Booking() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || (!form.hotelId && !form.flightId)}
             className="w-full rounded-2xl bg-[#050414] px-5 py-4 text-base font-semibold text-white transition hover:bg-[#111026] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting ? "Creating booking..." : "Proceed to Payment"}
