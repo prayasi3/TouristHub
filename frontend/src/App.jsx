@@ -15,6 +15,7 @@ import Hotels from "./pages/Hotels";
 import Login from "./pages/Login";
 import Mytrips from "./pages/Mytrips";
 import Payment from "./pages/Payment";
+import KhaltiReturn from "./pages/KhaltiReturn";
 import Signup from "./pages/Signup";
 import TourGuides from "./pages/TourGuides";
 
@@ -45,6 +46,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Payment />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payment/khalti-return"
+              element={
+                <ProtectedRoute>
+                  <KhaltiReturn />
                 </ProtectedRoute>
               }
             />

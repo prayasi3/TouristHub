@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import API from "../api/axios";
 import PageHeader from "../components/PageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../components/StatusView";
+import { campaignFallbackImage, resolveAssetUrl } from "../lib/assets";
 import { daysRemaining, formatDate } from "../lib/format";
 
 function Campaigns() {
@@ -49,9 +50,13 @@ function Campaigns() {
             return (
               <Link key={campaign.id} to={`/campaigns/${campaign.id}`} className="surface-card overflow-hidden p-0">
                 <img
-                  src={campaign.banner_url || "/images/campaigns/nepal_banner.jpg"}
+                  src={resolveAssetUrl(campaign.banner_url, campaignFallbackImage)}
                   alt={campaign.title}
                   className="h-72 w-full object-cover"
+                  onError={(event) => {
+                    event.currentTarget.onerror = null;
+                    event.currentTarget.src = campaignFallbackImage;
+                  }}
                 />
                 <div className="p-6">
                   <div className="flex flex-wrap gap-2">

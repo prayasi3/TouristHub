@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import API from "../api/axios";
 import PageHeader from "../components/PageHeader";
 import { ErrorState, LoadingState } from "../components/StatusView";
+import { campaignFallbackImage, resolveAssetUrl } from "../lib/assets";
 import { daysRemaining, formatDate } from "../lib/format";
 
 function buildCampaignAbout(campaign) {
@@ -105,9 +106,13 @@ function CampaignDetails() {
       <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="surface-card overflow-hidden p-0">
           <img
-            src={campaign.banner_url || "/images/campaigns/nepal_banner.jpg"}
+            src={resolveAssetUrl(campaign.banner_url, campaignFallbackImage)}
             alt={campaign.title}
             className="h-full min-h-96 w-full object-cover"
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = campaignFallbackImage;
+            }}
           />
         </div>
         <div className="surface-card">

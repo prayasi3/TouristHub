@@ -5,27 +5,23 @@ import {
   getPaymentsByBooking,
   createPayment,
   updatePayment,
-  deletePayment
+  deletePayment,
+  khaltiInitiate,
+  khaltiVerify,
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
 
-// Get all payments
+// ─── Khalti gateway routes (must be before /:id to avoid collision) ─────────
+router.post("/khalti/initiate", khaltiInitiate);
+router.post("/khalti/verify", khaltiVerify);
+
+// ─── Standard CRUD ───────────────────────────────────────────────────────────
 router.get("/", getPayments);
-
-// Get single payment by ID
-router.get("/:id", getPaymentById);
-
-// Get all payments for a specific booking
 router.get("/booking/:booking_id", getPaymentsByBooking);
-
-// Create a new payment
+router.get("/:id", getPaymentById);
 router.post("/", createPayment);
-
-// Update payment (status, transaction_id, payment_date)
 router.put("/:id", updatePayment);
-
-// Delete a payment (admin only)
 router.delete("/:id", deletePayment);
 
 export default router;
